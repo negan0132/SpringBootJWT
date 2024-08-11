@@ -60,7 +60,6 @@ public class SecurityController {
 						.user(root_user)
 						.build();
 				root_user.setRefreshID(refreshToken);
-				userService.createOne(root_user);
 				refreshTokenService.createOne(refreshToken);
 				return new LoginResponse().builder()
 						.authenticated(true)
