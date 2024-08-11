@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import com.SpringBoot.entities.Permission;
 import com.SpringBoot.entities.Role;
 import com.SpringBoot.entities.Users;
-import com.SpringBoot.repositories.InvalidTokenRepo;
 import com.SpringBoot.repositories.UserRepo;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -41,8 +40,6 @@ public class UserServiceImpl implements UserServiceIF{
 	
 	UserRepo repo;
 	
-	InvalidTokenRepo invalidTokenRepo;
-	
 	@Value("${security.jwt.secret}")
 	@NonFinal
 	String SCRET_KEY;
@@ -59,12 +56,12 @@ public class UserServiceImpl implements UserServiceIF{
 
 	@Override
 	public Users getByUserName(String user_name) {
-		return repo.findByUsername(user_name).orElseThrow(()-> new RuntimeException("User not found"));
+		return repo.findByUsername(user_name).orElseThrow(()-> new RuntimeException("Not user with this token"));
 	}
 	
 	@Override
-	public String getUserToken(Users user) {
 		
+	public String getUserToken(Users user) {
 		JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 		
 		JWTClaimsSet body = new JWTClaimsSet.Builder()
@@ -109,10 +106,15 @@ public class UserServiceImpl implements UserServiceIF{
 		SignedJWT signedJwt = SignedJWT.parse(token);
 		if(!signedJwt.verify(verifier) 
 				|| !(signedJwt.getJWTClaimsSet().getExpirationTime().after(new Date()))
-				|| invalidTokenRepo.findById(signedJwt.getJWTClaimsSet().getJWTID()).isPresent()) {
+				|| getByUserName(signedJwt.getJWTClaimsSet().getSubject()).getRefreshID()==null) {
 			throw new RuntimeException("Token not verify !");
 		}
 		return signedJwt;
+	}
+
+	@Override
+	public Users getUserByRefreshToken(String fresheToken) {
+		return Optional.of(repo.getOneUserByRefreshToken(fresheToken)).orElseThrow(()-> new RuntimeException("No User with this token"));
 	}
 
 }

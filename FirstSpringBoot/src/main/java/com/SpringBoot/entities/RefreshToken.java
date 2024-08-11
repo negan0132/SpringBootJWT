@@ -28,8 +28,6 @@ public class RefreshToken {
 	@GeneratedValue(strategy = GenerationType.UUID)
 	String refreshId;
 	
-	String token;
-	
 	Date expirationDate;
 	
 	@OneToOne(mappedBy = "refreshID", cascade = {CascadeType.MERGE, CascadeType.PERSIST})

@@ -18,4 +18,6 @@ public interface UserServiceIF {
 	
 	public SignedJWT verifyOneToken(String token) throws JOSEException, ParseException;
 	
+	public Users getUserByRefreshToken(String fresheToken);
+	
 }

@@ -37,7 +37,7 @@ public class Users {
 	@ManyToMany
 	Set<Role> roles;
 	
-	@OneToOne
+	@OneToOne(orphanRemoval = true)
 	@JoinColumn(name="refreshID")
 	RefreshToken refreshID;
 }
