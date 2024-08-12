@@ -12,6 +12,7 @@ public interface UserMapper {
 	
 	@Mapping(target = "roles", ignore = true)
 	@Mapping(target = "userId", ignore = true)
+	@Mapping(target = "refreshID", ignore = true)
 	Users toEntity(UserRequest request);
 	
 	UserResponse toUserResponse(Users user);

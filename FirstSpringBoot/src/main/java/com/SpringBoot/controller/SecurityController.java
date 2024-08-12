@@ -28,9 +28,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityController {
 
@@ -51,24 +53,28 @@ public class SecurityController {
 			if (root_user.getRefreshID() != null && root_user.getRefreshID().getExpirationDate().after(new Date())) {
 				return new LoginResponse().builder()
 						.authenticated(true)
-						.token(userService.getUserToken(root_user))
+						.access_token(userService.getUserToken(root_user))
+						.refresh_token(root_user.getRefreshID().getRefreshId())
 						.build();
 			} else {
 				RefreshToken refreshToken = new RefreshToken().builder()
-						.refreshId(UUID.randomUUID().toString())
 						.expirationDate(new Date(Instant.now().plus(3, ChronoUnit.HOURS).toEpochMilli()))
 						.user(root_user)
 						.build();
 				root_user.setRefreshID(refreshToken);
-				userService.createOne(root_user);
-				refreshTokenService.createOne(refreshToken);
+				RefreshToken r = refreshTokenService.createOne(refreshToken);
 				return new LoginResponse().builder()
 						.authenticated(true)
-						.token(userService.getUserToken(root_user))
+						.access_token(userService.getUserToken(root_user))
+						.refresh_token(r.getRefreshId())
 						.build();
 			}
 		}
-		return new LoginResponse().builder().authenticated(false).token("Do not have Token").build();
+		return new LoginResponse().builder()
+				.authenticated(false)
+				.access_token("Do not have Token")
+				.refresh_token("Do not have refresh token")
+				.build();
 	}
 
 	@PostMapping("/introspect")
@@ -80,7 +86,7 @@ public class SecurityController {
 					.message("Token was verified")
 					.build());
 		} catch (JOSEException | ParseException e) {
-			throw new RuntimeException("Token not verify !");
+			throw new RuntimeException("Token not verify");
 		}
 	}
 

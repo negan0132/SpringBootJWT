@@ -28,6 +28,7 @@ import com.SpringBoot.dto.request.ClassRequest;
 import com.SpringBoot.dto.request.PermissionRequest;
 import com.SpringBoot.dto.request.RoleRequest;
 import com.SpringBoot.dto.request.StudentRequest;
+import com.SpringBoot.dto.request.TokenRequest;
 import com.SpringBoot.dto.request.UserRequest;
 import com.SpringBoot.dto.response.LoginResponse;
 import com.SpringBoot.dto.response.PermissionResponse;
@@ -220,17 +221,18 @@ public class CRUDController {
 	}
 
 	/*
-	 * Require Refresh Token	
+	 * Require Access Token	
 	 */
-	@GetMapping("/refresh-token/{id}")
-	public LoginResponse refreshTokenNow(@PathVariable String id) {
-		RefreshToken root = refreshTokenRepo.findById(id).orElseThrow(() -> new RuntimeException("No Refresh Token with this id"));
+	@GetMapping("/refresh-token")
+	public LoginResponse refreshTokenNow(@RequestBody TokenRequest refreshId) {
+		RefreshToken root = refreshTokenRepo.findById(refreshId.getToken()).orElseThrow(() -> new RuntimeException("No Refresh Token with this ID"));
 		if(root.getExpirationDate().before(new Date())) {
 			throw new RuntimeException("You have to login again");
 		}
 		return new LoginResponse().builder()
 				.authenticated(true)
-				.token(userService.getUserToken(root.getUser()))
+				.access_token(userService.getUserToken(root.getUser()))
+				.refresh_token(refreshId.getToken())
 				.build();
 	}
 	
